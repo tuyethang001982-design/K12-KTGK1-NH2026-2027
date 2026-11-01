@@ -1,0 +1,531 @@
+<!DOCTYPE html>
+<html lang="vi" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KTGK1 Môn GDKT&PL 12 - THPT Chê Ghê-va-ra</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Canvas Confetti Library -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Plus Jakarta Sans', 'sans-serif'],
+                    },
+                    colors: {
+                        brand: {
+                            50: '#f0f3ff',
+                            100: '#e0e7ff',
+                            500: '#6366f1',
+                            600: '#4f46e5',
+                            700: '#4338ca',
+                            900: '#312e81',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background: linear-gradient(135deg, #0b0f19 0%, #111827 40%, #0f172a 70%, #1e1b4b 100%);
+            background-attachment: fixed;
+        }
+        .glass-card {
+            background: rgba(15, 23, 42, 0.75);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+        }
+        .glass-card-navy {
+            background: rgba(30, 41, 59, 0.85);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(99, 102, 241, 0.25);
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+        }
+        .glass-nav {
+            background: rgba(15, 23, 42, 0.85);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .opt-card {
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .opt-card:hover {
+            transform: translateY(-2px);
+        }
+        .opt-card.selected {
+            background-color: #eef2ff !important;
+            border-color: #6366f1 !important;
+            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.15);
+        }
+        .tf-btn {
+            transition: all 0.2s ease;
+        }
+        .tf-btn-true.active {
+            background-color: #10b981 !important;
+            color: white !important;
+            border-color: #10b981 !important;
+            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.25);
+        }
+        .tf-btn-false.active {
+            background-color: #f43f5e !important;
+            color: white !important;
+            border-color: #f43f5e !important;
+            box-shadow: 0 4px 12px rgba(244, 63, 94, 0.25);
+        }
+        .progress-gradient {
+            background: linear-gradient(90deg, #38bdf8 0%, #6366f1 50%, #a855f7 100%);
+        }
+        @keyframes pulse-glow-navy {
+            0%, 100% { box-shadow: 0 0 20px rgba(99, 102, 241, 0.5), 0 0 40px rgba(56, 189, 248, 0.2); }
+            50% { box-shadow: 0 0 30px rgba(168, 85, 247, 0.7), 0 0 50px rgba(99, 102, 241, 0.4); }
+        }
+        .glow-effect-navy {
+            animation: pulse-glow-navy 3s infinite;
+        }
+    </style>
+</head>
+<body class="text-slate-100 min-h-screen flex flex-col antialiased selection:bg-indigo-500 selection:text-white">
+    <!-- Header Navigation -->
+    <header class="glass-nav sticky top-0 z-40 border-b border-slate-800 shadow-lg">
+        <div class="max-w-5xl mx-auto px-4 py-3 flex items-center justify-between gap-4">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-2xl bg-gradient-to-tr from-sky-500 via-indigo-600 to-purple-600 flex items-center justify-center text-white shadow-lg shadow-indigo-500/30">
+                    <span class="text-xl">📚</span>
+                </div>
+                <div>
+                    <h1 class="text-base sm:text-lg font-extrabold bg-gradient-to-r from-cyan-400 via-indigo-300 to-purple-300 bg-clip-text text-transparent">
+                        KTGK1 - GDKT&PL 12
+                    </h1>
+                    <p class="text-xs text-slate-400 font-medium">THPT Chê Ghê-va-ra • Năm học 2026-2027</p>
+                </div>
+            </div>
+            
+            <!-- Warning Badge & Timer -->
+            <div class="flex items-center gap-3">
+                <div id="violation-badge" class="hidden bg-rose-950/90 text-rose-300 border border-rose-500/40 px-3 py-1.5 rounded-2xl text-xs font-black items-center gap-1.5 shadow-lg animate-pulse">
+                    <span>⚠️ Vi phạm:</span>
+                    <span id="violation-count">0/3</span>
+                </div>
+                <div id="timer-box" class="hidden bg-slate-900/90 text-white px-4 py-2 rounded-2xl border border-indigo-500/30 flex items-center gap-2.5 shadow-lg">
+                    <div class="relative flex h-3 w-3">
+                      <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75"></span>
+                      <span class="relative inline-flex rounded-full h-3 w-3 bg-rose-500"></span>
+                    </div>
+                    <div class="flex flex-col">
+                        <span class="text-[10px] text-slate-400 font-semibold uppercase tracking-wider leading-none">Thời gian</span>
+                        <span id="time-display" class="font-mono font-black text-base text-cyan-300 leading-none mt-0.5">45:00</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div id="progress-container" class="hidden w-full bg-slate-900 h-2 relative">
+            <div id="progress-bar" class="progress-gradient h-full w-0 transition-all duration-300 rounded-r-full"></div>
+        </div>
+    </header>
+
+    <main class="flex-grow max-w-5xl w-full mx-auto px-4 py-6 sm:py-8 flex flex-col justify-center">
+        <!-- Login / Start Screen -->
+        <div id="start-screen" class="glass-card-navy rounded-3xl p-6 sm:p-10 max-w-2xl mx-auto space-y-8 relative overflow-hidden my-auto border-t-4 border-cyan-400 w-full">
+            <div class="absolute -top-20 -right-20 w-56 h-56 bg-cyan-500/20 rounded-full blur-3xl pointer-events-none"></div>
+            <div class="absolute -bottom-20 -left-20 w-56 h-56 bg-purple-600/25 rounded-full blur-3xl pointer-events-none"></div>
+            
+            <div class="text-center relative z-10 space-y-3">
+                <div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-indigo-950/80 text-cyan-300 font-bold text-xs uppercase tracking-wider border border-indigo-500/40 shadow-inner">
+                    <span class="animate-pulse">⚡</span>
+                    <span>Đề Kiểm Tra Giữa Kì I - Khối 12</span>
+                </div>
+                <h2 class="text-3xl sm:text-4xl font-black text-white tracking-tight leading-tight">
+                    <span class="bg-gradient-to-r from-cyan-400 via-sky-300 to-indigo-300 bg-clip-text text-transparent">Môn: GDKT&PL 12</span>
+                </h2>
+                <p class="text-slate-300 text-sm sm:text-base leading-relaxed max-w-lg mx-auto font-medium">
+                    Cấu trúc 28 câu (24 trắc nghiệm 4 lựa chọn + 4 câu Đúng/Sai 16 ý nhỏ). Tự động xáo trộn ngẫu nhiên bộ đề sau mỗi lần làm bài.
+                </p>
+            </div>
+
+            <div class="grid grid-cols-2 sm:grid-cols-3 gap-3.5 relative z-10">
+                <div class="bg-slate-900/60 p-4 rounded-2xl border border-slate-700/60 text-center shadow-lg backdrop-blur-md">
+                    <span class="text-2xl block mb-1">⏱️</span>
+                    <span class="text-[11px] text-slate-400 font-semibold block uppercase">Thời gian</span>
+                    <span class="text-sm font-extrabold text-cyan-300">45 Phút</span>
+                </div>
+                <div class="bg-slate-900/60 p-4 rounded-2xl border border-slate-700/60 text-center shadow-lg backdrop-blur-md">
+                    <span class="text-2xl block mb-1">🛡️</span>
+                    <span class="text-[11px] text-slate-400 font-semibold block uppercase">Giám sát</span>
+                    <span class="text-sm font-extrabold text-rose-400">Chống gian lận</span>
+                </div>
+                <div class="bg-slate-900/60 p-4 rounded-2xl border border-slate-700/60 text-center shadow-lg backdrop-blur-md col-span-2 sm:col-span-1">
+                    <span class="text-2xl block mb-1">🏆</span>
+                    <span class="text-[11px] text-slate-400 font-semibold block uppercase">Điểm tối đa</span>
+                    <span class="text-sm font-extrabold text-emerald-400">10.0 Điểm</span>
+                </div>
+            </div>
+
+            <!-- Login Form -->
+            <div class="space-y-4 pt-2 relative z-10">
+                <div>
+                    <label class="block text-xs font-extrabold uppercase tracking-wider text-slate-300 mb-1.5">
+                        Họ và tên học sinh <span class="text-rose-400">*</span>
+                    </label>
+                    <div class="relative">
+                        <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">👤</span>
+                        <input type="text" id="student-name" autocomplete="off" required placeholder="Nhập đầy đủ Họ và Tên..." 
+                            class="w-full pl-10 pr-4 py-3.5 rounded-2xl bg-slate-900/90 border border-slate-700 focus:outline-none focus:ring-2 focus:ring-cyan-400 text-sm font-semibold text-white placeholder-slate-500 transition-all">
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-extrabold uppercase tracking-wider text-slate-300 mb-1.5">
+                        Lớp học <span class="text-rose-400">*</span>
+                    </label>
+                    <div class="relative">
+                        <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">🏫</span>
+                        <select id="student-class" required 
+                            class="w-full pl-10 pr-4 py-3.5 rounded-2xl bg-slate-900/90 border border-slate-700 focus:outline-none focus:ring-2 focus:ring-cyan-400 text-sm font-semibold text-white transition-all appearance-none">
+                            <option value="" disabled selected class="text-slate-500">-- Chọn lớp học của bạn --</option>
+                            <option value="12XH1" class="bg-slate-900 text-white">Lớp 12XH1</option>
+                            <option value="12XH2" class="bg-slate-900 text-white">Lớp 12XH2</option>
+                            <option value="12XH3" class="bg-slate-900 text-white">Lớp 12XH3</option>
+                        </select>
+                        <span class="absolute inset-y-0 right-0 pr-3.5 flex items-center pointer-events-none text-slate-400">▼</span>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-extrabold uppercase tracking-wider text-slate-300 mb-1.5">
+                        Mật khẩu bài kiểm tra <span class="text-rose-400">*</span>
+                    </label>
+                    <div class="relative">
+                        <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">🔑</span>
+                        <input type="password" id="quiz-password" autocomplete="new-password" required value="" placeholder="Nhập mật khẩu do Giáo viên cung cấp..." 
+                            class="w-full pl-10 pr-4 py-3.5 rounded-2xl bg-slate-900/90 border border-slate-700 focus:outline-none focus:ring-2 focus:ring-cyan-400 text-sm font-semibold text-white placeholder-slate-500 transition-all">
+                    </div>
+                </div>
+            </div>
+
+            <button onclick="startQuiz()" class="glow-effect-navy w-full bg-gradient-to-r from-cyan-500 via-indigo-600 to-purple-600 hover:from-cyan-400 hover:to-purple-500 text-white font-black text-base py-4 rounded-2xl shadow-xl transition-all transform hover:-translate-y-0.5 active:translate-y-0 flex items-center justify-center gap-2">
+                <span>Bắt Đầu Làm Bài</span>
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M13 7l5 5m0 0l-5 5m5-5H6"></path></svg>
+            </button>
+        </div>
+
+        <!-- Quiz Workspace -->
+        <div id="quiz-workspace" class="hidden space-y-6">
+            <div class="sticky top-16 z-30 glass-card rounded-2xl p-3.5 border border-slate-700 shadow-xl transition-all">
+                <div class="flex items-center justify-between mb-2">
+                    <span class="text-xs font-extrabold text-slate-300 uppercase tracking-wider flex items-center gap-1.5">
+                        <svg class="w-4 h-4 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h7"></path></svg>
+                        Danh sách câu hỏi (1-28)
+                    </span>
+                    <span id="answered-count-badge" class="text-xs font-bold px-2.5 py-0.5 rounded-full bg-indigo-950 text-cyan-300 border border-indigo-500/30">0/28 đã hoàn thành</span>
+                </div>
+                <div id="question-palette" class="flex flex-wrap gap-2 max-h-36 overflow-y-auto pr-1"></div>
+            </div>
+
+            <form id="quiz-form" class="space-y-6" onsubmit="event.preventDefault(); confirmSubmit();">
+                <div id="questions-container" class="space-y-6"></div>
+
+                <div class="glass-card p-4 rounded-2xl shadow-xl border border-slate-700 flex items-center justify-between gap-3">
+                    <button type="button" id="prev-btn" onclick="prevQuestion()" class="bg-slate-800 hover:bg-slate-700 text-slate-200 font-extrabold px-5 py-3 rounded-xl transition-all text-xs sm:text-sm flex items-center gap-1.5 disabled:opacity-40 disabled:cursor-not-allowed">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7"></path></svg>
+                        <span>Câu trước</span>
+                    </button>
+                    
+                    <div class="text-center font-bold text-xs text-slate-400 hidden sm:block">
+                        <span id="step-indicator">Câu 1 / 28</span>
+                    </div>
+
+                    <button type="button" id="next-btn" onclick="nextQuestion()" class="bg-indigo-600 hover:bg-indigo-500 text-white font-extrabold px-6 py-3 rounded-xl shadow-md shadow-indigo-900/40 transition-all text-xs sm:text-sm flex items-center gap-1.5">
+                        <span>Câu tiếp theo</span>
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"></path></svg>
+                    </button>
+
+                    <button type="button" id="submit-btn" onclick="confirmSubmit()" class="bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white font-extrabold px-6 py-3 rounded-xl shadow-lg shadow-emerald-900/40 transition-all text-xs sm:text-sm flex items-center gap-1.5">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"></path></svg>
+                        <span>Nộp Bài Ngay</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Result Screen -->
+        <div id="result-screen" class="hidden glass-card-navy rounded-3xl shadow-2xl p-6 sm:p-10 max-w-2xl mx-auto text-center space-y-8 my-auto relative overflow-hidden border-t-4 border-emerald-400 w-full">
+            <div class="absolute -top-12 -left-12 w-44 h-44 bg-emerald-500/20 rounded-full blur-3xl pointer-events-none"></div>
+            
+            <div class="relative z-10 space-y-3">
+                <div id="badge-icon" class="w-24 h-24 bg-slate-900 text-emerald-400 rounded-3xl flex items-center justify-center mx-auto text-5xl shadow-inner border border-emerald-500/30 transform rotate-3">
+                    🏆
+                </div>
+                <h2 class="text-3xl font-black text-white tracking-tight">Hoàn Thành Bài Kiểm Tra!</h2>
+                <p id="submission-status" class="text-slate-300 text-sm font-medium">Kết quả của bạn đã được ghi nhận thành công.</p>
+            </div>
+
+            <div id="rank-card" class="bg-gradient-to-r from-cyan-500 via-indigo-500 to-purple-500 p-0.5 rounded-2xl shadow-lg">
+                <div class="bg-slate-900 p-4 rounded-[14px] flex items-center justify-center gap-3">
+                    <span class="text-2xl" id="rank-emoji">🌟</span>
+                    <div>
+                        <span class="text-[10px] text-slate-400 font-extrabold uppercase tracking-wider block">Danh hiệu đạt được</span>
+                        <span id="rank-title" class="text-base font-extrabold text-cyan-300">Học Sinh Xuất Sắc</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-2 gap-4">
+                <div class="bg-slate-900/80 p-5 rounded-2xl border border-slate-800 shadow-sm text-center">
+                    <p class="text-xs text-slate-400 font-extrabold uppercase tracking-wider mb-1">Tổng điểm đạt được</p>
+                    <p id="score-display" class="text-4xl font-black text-cyan-400">0/10</p>
+                </div>
+                <div class="bg-slate-900/80 p-5 rounded-2xl border border-slate-800 shadow-sm text-center">
+                    <p class="text-xs text-slate-400 font-extrabold uppercase tracking-wider mb-1">Thời gian làm bài</p>
+                    <p id="time-spent" class="text-3xl font-black text-slate-200 mt-1">00:00</p>
+                </div>
+            </div>
+
+            <div class="flex justify-center pt-2">
+                <div class="bg-slate-900/90 text-slate-300 font-extrabold px-6 py-4 rounded-2xl border border-indigo-500/30 text-sm flex items-center justify-center gap-2 shadow-lg">
+                    <span class="text-emerald-400 text-lg">🔒</span>
+                    <span>Bạn đã hoàn thành bài kiểm tra. (Mỗi học sinh chỉ được làm 1 lần duy nhất)</span>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Custom Modal -->
+    <div id="custom-modal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-md hidden items-center justify-center z-50 p-4">
+        <div class="glass-card-navy rounded-3xl max-w-sm w-full p-6 shadow-2xl space-y-4 border border-slate-700 transform transition-all">
+            <div class="w-12 h-12 bg-indigo-950 text-cyan-400 rounded-2xl flex items-center justify-center text-xl font-bold border border-indigo-500/30" id="modal-icon">
+                💬
+            </div>
+            <div>
+                <h3 id="modal-title" class="text-lg font-extrabold text-white">Thông báo</h3>
+                <p id="modal-message" class="text-sm text-slate-300 mt-1 leading-relaxed">Nội dung thông báo...</p>
+            </div>
+            <div id="modal-actions" class="flex justify-end gap-2 pt-2">
+                <button id="modal-cancel-btn" onclick="closeModal()" class="px-4 py-2.5 rounded-xl text-slate-400 hover:bg-slate-800 text-xs font-bold transition-all">Hủy bỏ</button>
+                <button id="modal-confirm-btn" class="px-5 py-2.5 rounded-xl bg-cyan-500 text-slate-950 hover:bg-cyan-400 text-xs font-black shadow-md transition-all">Đồng ý</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let timerInterval = null;
+        let timeLeft = 45 * 60;
+        let isSubmitted = false;
+        let isQuizActive = false;
+        let studentName = '';
+        let studentClass = '';
+        let currentQuestionIndex = 0;
+        const FIXED_PASSWORD = 'KTGK12026@';
+        let userAnswers = {};
+
+        // Anti-Cheating Variables
+        let violationCount = 0;
+        const MAX_VIOLATIONS = 3;
+
+        // Check if student already took the test on load
+        window.addEventListener('DOMContentLoaded', () => {
+            checkPreviousSubmission();
+        });
+
+        function checkPreviousSubmission() {
+            const savedAttempt = localStorage.getItem('ktgk1_gdktpl12_attempt');
+            if (savedAttempt) {
+                const data = JSON.parse(savedAttempt);
+                showAlreadyCompletedScreen(data);
+            }
+        }
+
+        function showAlreadyCompletedScreen(data) {
+            document.getElementById('start-screen').classList.add('hidden');
+            document.getElementById('quiz-workspace').classList.add('hidden');
+            document.getElementById('result-screen').classList.remove('hidden');
+
+            document.getElementById('score-display').innerText = `${data.score} / 10`;
+            document.getElementById('time-spent').innerText = data.timeSpent || 'Đã nộp';
+            document.getElementById('submission-status').innerText = `Học sinh: ${data.name} - Lớp: ${data.studentClass} đã nộp bài thành công vào ${data.submittedAt}.`;
+
+            let rank = 'Học Sinh Đạt Kết Quả Tốt';
+            let emoji = '📚';
+            const numScore = parseFloat(data.score);
+            if (numScore >= 9.0) {
+                rank = 'Xuất Sắc - Chuyên Gia Kinh Tế Pháp Luật';
+                emoji = '🏆';
+            } else if (numScore >= 7.0) {
+                rank = 'Giỏi - Nắm Vững Kiến Thức Vững Chắc';
+                emoji = '🌟';
+            } else if (numScore >= 5.0) {
+                rank = 'Đạt - Cần Cố Gắng Hơn Nữa';
+                emoji = '👍';
+            }
+
+            document.getElementById('rank-title').innerText = rank;
+            document.getElementById('rank-emoji').innerText = emoji;
+        }
+
+        function startQuiz() {
+            const nameInput = document.getElementById('student-name').value.trim();
+            const classInput = document.getElementById('student-class').value;
+            const pwdInput = document.getElementById('quiz-password').value.trim();
+
+            if (localStorage.getItem('ktgk1_gdktpl12_attempt')) {
+                showAlert('Bạn đã hoàn thành bài kiểm tra trước đó và không thể làm lại!', '🚫');
+                return;
+            }
+
+            if (!nameInput) {
+                showAlert('Vui lòng nhập họ và tên của bạn!', '⚠️');
+                return;
+            }
+            if (!classInput) {
+                showAlert('Vui lòng chọn lớp học!', '⚠️');
+                return;
+            }
+            if (!pwdInput) {
+                showAlert('Vui lòng nhập mật khẩu bài kiểm tra!', '🔑');
+                return;
+            }
+            if (pwdInput !== FIXED_PASSWORD) {
+                showAlert('Mật khẩu không đúng! Vui lòng hỏi lại giáo viên.', '❌');
+                return;
+            }
+
+            studentName = nameInput;
+            studentClass = classInput;
+
+            prepareQuizData();
+            renderQuestions();
+
+            document.getElementById('start-screen').classList.add('hidden');
+            document.getElementById('quiz-workspace').classList.remove('hidden');
+            document.getElementById('timer-box').classList.remove('hidden');
+            document.getElementById('violation-badge').classList.remove('hidden');
+            document.getElementById('violation-badge').classList.add('flex');
+            document.getElementById('progress-container').classList.remove('hidden');
+
+            isQuizActive = true;
+            initAntiCheating();
+            startTimer();
+        }
+
+        function calculateAndShowResult() {
+            if (isSubmitted) return;
+            isSubmitted = true;
+            isQuizActive = false;
+            clearInterval(timerInterval);
+
+            // Gỡ bỏ các sự kiện giám sát khi đã nộp bài
+            document.removeEventListener('visibilitychange', handleVisibilityChange);
+            window.removeEventListener('blur', handleWindowBlur);
+
+            let mcScore = 0;
+            let tfScore = 0;
+
+            quizData.forEach(item => {
+                if (item.type === 'mc') {
+                    if (userAnswers[item.id] === item.answer) {
+                        mcScore += 0.25;
+                    }
+                } else if (item.type === 'tf') {
+                    const userSub = userAnswers[item.id] || {};
+                    let correctCount = 0;
+
+                    item.subQuestions.forEach((sub, sIdx) => {
+                        if (userSub[sIdx] === sub.answer) correctCount++;
+                    });
+
+                    let subScore = 0;
+                    if (correctCount === 1) subScore = 0.1;
+                    else if (correctCount === 2) subScore = 0.25;
+                    else if (correctCount === 3) subScore = 0.5;
+                    else if (correctCount === 4) subScore = 1.0;
+
+                    tfScore += subScore;
+                }
+            });
+
+            let finalScore = mcScore + tfScore;
+            finalScore = Math.round(finalScore * 10) / 10;
+            if (finalScore > 10) finalScore = 10;
+
+            const timeSpentSeconds = (45 * 60) - timeLeft;
+            const spentMin = Math.floor(timeSpentSeconds / 60);
+            const spentSec = timeSpentSeconds % 60;
+            const timeSpentStr = `${spentMin.toString().padStart(2, '0')}:${spentSec.toString().padStart(2, '0')}`;
+
+            // Lưu kết quả làm bài vào localStorage để khóa lượt làm lại
+            const now = new Date();
+            const timeStr = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')} ${now.getDate()}/${now.getMonth() + 1}/${now.getFullYear()}`;
+            
+            localStorage.setItem('ktgk1_gdktpl12_attempt', JSON.stringify({
+                name: studentName,
+                studentClass: studentClass,
+                score: finalScore.toFixed(1),
+                timeSpent: timeSpentStr,
+                submittedAt: timeStr
+            }));
+
+            // Tích hợp gửi dữ liệu tự động về Google Form
+            sendResultToGoogleForm(studentName, studentClass, finalScore.toFixed(1));
+
+            document.getElementById('quiz-workspace').classList.add('hidden');
+            document.getElementById('timer-box').classList.add('hidden');
+            document.getElementById('violation-badge').classList.add('hidden');
+            document.getElementById('progress-container').classList.add('hidden');
+            
+            document.getElementById('result-screen').classList.remove('hidden');
+            document.getElementById('score-display').innerText = `${finalScore.toFixed(1)} / 10`;
+            document.getElementById('time-spent').innerText = timeSpentStr;
+            document.getElementById('submission-status').innerText = `Học sinh: ${studentName} - Lớp: ${studentClass} đã nộp bài thành công vào ${timeStr}.`;
+
+            let rank = 'Học Sinh Đạt Kết Quả Tốt';
+            let emoji = '📚';
+
+            if (finalScore >= 9.0) {
+                rank = 'Xuất Sắc - Chuyên Gia Kinh Tế Pháp Luật';
+                emoji = '🏆';
+                if (typeof confetti === 'function') {
+                    confetti({ particleCount: 150, spread: 90, origin: { y: 0.6 } });
+                }
+            } else if (finalScore >= 7.0) {
+                rank = 'Giỏi - Nắm Vững Kiến Thức Vững Chắc';
+                emoji = '🌟';
+            } else if (finalScore >= 5.0) {
+                rank = 'Đạt - Cần Cố Gắng Hơn Nữa';
+                emoji = '👍';
+            }
+
+            document.getElementById('rank-title').innerText = rank;
+            document.getElementById('rank-emoji').innerText = emoji;
+        }
+
+        function showConfirm(msg, onConfirm) {
+            document.getElementById('modal-icon').innerText = '❓';
+            document.getElementById('modal-title').innerText = 'Xác nhận nộp bài';
+            document.getElementById('modal-message').innerText = msg;
+            document.getElementById('modal-cancel-btn').classList.remove('hidden');
+
+            const confirmBtn = document.getElementById('modal-confirm-btn');
+            confirmBtn.onclick = () => {
+                closeModal();
+                onConfirm();
+            };
+
+            document.getElementById('custom-modal').classList.remove('hidden');
+            document.getElementById('custom-modal').classList.add('flex');
+        }
+
+        function closeModal() {
+            document.getElementById('custom-modal').classList.add('hidden');
+            document.getElementById('custom-modal').classList.remove('flex');
+        }
+    </script>
+</body>
+</html>
