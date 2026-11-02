@@ -62,9 +62,9 @@
             transform: translateY(-2px);
         }
         .opt-card.selected {
-            background-color: #eef2ff !important;
+            background-color: #312e81 !important;
             border-color: #6366f1 !important;
-            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.15);
+            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.25);
         }
         .tf-btn {
             transition: all 0.2s ease;
@@ -205,7 +205,7 @@
                     </label>
                     <div class="relative">
                         <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">🔑</span>
-                        <input type="password" id="quiz-password" autocomplete="new-password" required value="" placeholder="Nhập mật khẩu do Giáo viên cung cấp..." 
+                        <input type="password" id="quiz-password" autocomplete="new-password" required placeholder="Nhập mật khẩu do Giáo viên cung cấp..." 
                             class="w-full pl-10 pr-4 py-3.5 rounded-2xl bg-slate-900/90 border border-slate-700 focus:outline-none focus:ring-2 focus:ring-cyan-400 text-sm font-semibold text-white placeholder-slate-500 transition-all">
                     </div>
                 </div>
@@ -323,14 +323,90 @@
         let studentName = '';
         let studentClass = '';
         let currentQuestionIndex = 0;
-        const FIXED_PASSWORD = 12XH3;
+        const FIXED_PASSWORD = "12XH3";
         let userAnswers = {};
 
         // Anti-Cheating Variables
         let violationCount = 0;
         const MAX_VIOLATIONS = 3;
 
-        // Check if student already took the test on load
+        // Sample Questions Database (24 Multiple Choice + 4 True/False)
+        const rawQuizData = [
+            // Multiple Choice Questions (24 câu)
+            { id: 1, type: 'mc', question: 'Tăng trưởng kinh tế là sự gia tăng về yếu tố nào sau đây của nền kinh tế trong một thời gian nhất định?', options: ['A. Quy mô sản lượng và thu nhập', 'B. Chất lượng cuộc sống và dân số', 'C. Cơ cấu hạ tầng và văn hóa', 'D. Trình độ giáo dục và y tế'], answer: 0 },
+            { id: 2, type: 'mc', question: 'Tăng trưởng kinh tế thường được đo lường bằng chỉ số nào dưới đây?', options: ['A. HDI (Chỉ số phát triển con người)', 'B. GDP (Tổng sản phẩm quốc nội)', 'C. CPI (Chỉ số giá tiêu dùng)', 'D. Gini (Hệ số bất bình bình đẳng)'], answer: 1 },
+            { id: 3, type: 'mc', question: 'Phát triển kinh tế bao gồm tăng trưởng kinh tế kết hợp với yếu tố nào?', options: ['A. Sự tiến bộ xã hội và chuyển dịch cơ cấu kinh tế', 'B. Gia tăng tỷ lệ lạm phát', 'C. Mở rộng quy mô dân số', 'D. Tăng trưởng nợ công'], answer: 0 },
+            { id: 4, type: 'mc', question: 'Hội nhập kinh tế quốc tế mang lại lợi ích chủ yếu nào cho các quốc gia đang phát triển?', options: ['A. Xóa bỏ hoàn toàn khoảng cách giàu nghèo', 'B. Mở rộng thị trường xuất khẩu và thu hút vốn đầu tư', 'C. Bảo hộ tuyệt đối nền sản xuất nội địa', 'D. Giảm sự phụ thuộc vào công nghệ nước ngoài'], answer: 1 },
+            { id: 5, type: 'mc', question: 'Cơ quan nào ở Việt Nam có thẩm quyền ban hành Hiến pháp?', options: ['A. Chính phủ', 'B. Quốc hội', 'C. Chủ tịch nước', 'D. Tòa án nhân dân tối cao'], answer: 1 },
+            { id: 6, type: 'mc', question: 'Hiến pháp năm 2013 quy định hình thức quản lý nhà nước của Việt Nam là gì?', options: ['A. Nhà nước pháp quyền xã hội chủ nghĩa', 'B. Nhà nước quân chủ lập hiến', 'C. Nhà nước cộng hòa tổng thống', 'D. Nhà nước liên bang'], answer: 0 },
+            { id: 7, type: 'mc', question: 'Bảo hiểm xã hội bắt buộc áp dụng cho đối tượng nào sau đây?', options: ['A. Học sinh, sinh viên', 'B. Người lao động làm việc theo hợp đồng lao động', 'C. Người lao động tự do', 'D. Trẻ em dưới 6 tuổi'], answer: 1 },
+            { id: 8, type: 'mc', question: 'Trách nhiệm pháp lý là hậu quả bất lợi mà chủ thể vi phạm pháp luật phải chịu trước yếu tố nào?', options: ['A. Nhà nước', 'B. Cộng đồng dân cư', 'C. Doanh nghiệp', 'D. Tổ chức xã hội'], answer: 0 },
+            { id: 9, type: 'mc', question: 'Một trong những nguyên tắc cơ bản của bảo hiểm là gì?', options: ['A. Lấy số đông bù số ít', 'B. Kinh doanh luôn có lời 100%', 'C. Chia đều tài sản cho tất cả', 'D. Không thu phí dịch vụ'], answer: 0 },
+            { id: 10, type: 'mc', question: 'Vi phạm hành chính là hành vi xâm phạm đến yếu tố nào?', options: ['A. Quy tắc quản lý nhà nước', 'B. Trật tự an toàn giao thông độc quyền', 'C. Tính mạng của nhiều người', 'D. Quyền sở hữu trí tuệ toàn cầu'], answer: 0 },
+            { id: 11, type: 'mc', question: 'Chỉ số HDI phản ánh khía cạnh nào trong phát triển bền vững?', options: ['A. Thu nhập, giáo dục và tuổi thọ', 'B. Lợi nhuận doanh nghiệp', 'C. Dự trữ ngoại hối', 'D. Sản lượng nông nghiệp'], answer: 0 },
+            { id: 12, type: 'mc', question: 'Quyền con người và quyền công dân trong Hiến pháp Việt Nam được ghi nhận ở chương nào?', options: ['A. Chương I', 'B. Chương II', 'C. Chương III', 'D. Chương IV'], answer: 1 },
+            { id: 13, type: 'mc', question: 'Chính sách an sinh xã hội nào hỗ trợ trực tiếp người thất nghiệp?', options: ['A. Bảo hiểm y tế', 'B. Bảo hiểm thất nghiệp', 'C. Bảo hiểm nhân thọ', 'D. Quỹ từ thiện'], answer: 1 },
+            { id: 14, type: 'mc', question: 'Đâu là hình thức hội nhập kinh tế quốc tế ở mức độ cao nhất?', options: ['A. Khu vực thương mại tự do (FTA)', 'B. Liên minh kinh tế', 'C. Hiệp định song phương', 'D. Thỏa thuận khung'], answer: 1 },
+            { id: 15, type: 'mc', question: 'Vi phạm hình sự là hành vi nguy hiểm cho xã hội được quy định trong luật nào?', options: ['A. Bộ luật Dân sự', 'B. Bộ luật Hình sự', 'C. Luật Lao động', 'D. Luật Thương mại'], answer: 1 },
+            { id: 16, type: 'mc', question: 'Nhà nước điều tiết kinh tế thông qua công cụ quan trọng nhất nào?', options: ['A. Pháp luật và Ngân sách nhà nước', 'B. Thị trường tự do', 'C. Mạng xã hội', 'D. Các tập đoàn tư nhân'], answer: 0 },
+            { id: 17, type: 'mc', question: 'Sự tăng trưởng kinh tế không bền vững thường kéo theo hậu quả nào?', options: ['A. Ô nhiễm môi trường và cạn kiệt tài nguyên', 'B. Gia tăng bình đẳng xã hội', 'C. Giảm nợ công', 'D. Tăng năng suất lao động'], answer: 0 },
+            { id: 18, type: 'mc', question: 'Mọi công dân đều bình đẳng trước pháp luật có nghĩa là gì?', options: ['A. Đều được hưởng quyền và chịu nghĩa vụ theo quy định', 'B. Đều có thu nhập giống nhau', 'C. Đều làm một nghề giống nhau', 'D. Đều được miễn thuế'], answer: 0 },
+            { id: 19, type: 'mc', question: 'Mặt trái của hội nhập kinh tế quốc tế là gì?', options: ['A. Tăng sức ép cạnh tranh lên doanh nghiệp nội địa', 'B. Mở rộng xuất khẩu', 'C. Thu hút nguồn vốn nước ngoài', 'D. Tiếp cận công nghệ tiên tiến'], answer: 0 },
+            { id: 20, type: 'mc', question: 'Bảo hiểm y tế toàn dân nhằm mục đích gì?', options: ['A. Phủ sóng chăm sóc sức khỏe cộng đồng', 'B. Tăng thu ngân sách', 'C. Hỗ trợ kinh doanh bảo hiểm', 'D. Cho vay tài chính'], answer: 0 },
+            { id: 21, type: 'mc', question: 'Công dân có quyền khiếu nại khi nào?', options: ['A. Khi quyết định hành chính xâm phạm quyền lợi hợp pháp của mình', 'B. Khi chứng kiến vi phạm hình sự', 'C. Khi không hài lòng với giá cả thị trường', 'D. Khi muốn thay đổi luật'], answer: 0 },
+            { id: 22, type: 'mc', question: 'Mục tiêu cao nhất của phát triển kinh tế ở Việt Nam là gì?', options: ['A. Dân giàu, nước mạnh, dân chủ, công bằng, văn minh', 'B. Tăng tối đa sản lượng công nghiệp', 'C. Trở thành quốc gia xuất khẩu hàng đầu', 'D. Tập trung tài sản vào nhà nước'], answer: 0 },
+            { id: 23, type: 'mc', question: 'Tổ chức WTO là tên viết tắt của tổ chức nào?', options: ['A. Tổ chức Thương mại Thế giới', 'B. Quỹ Tiền tệ Quốc tế', 'C. Ngân hàng Thế giới', 'D. Diễn đàn Kinh tế Thế giới'], answer: 0 },
+            { id: 24, type: 'mc', question: 'Người từ đủ bao nhiêu tuổi trở lên phải chịu trách nhiệm hình sự về mọi tội phạm?', options: ['A. 14 tuổi', 'B. 16 tuổi', 'C. 18 tuổi', 'D. 21 tuổi'], answer: 1 },
+
+            // True / False Questions (4 câu lớn x 4 ý nhỏ = 16 ý)
+            {
+                id: 25,
+                type: 'tf',
+                question: 'Câu 25: Về phát triển kinh tế và các chỉ số đo lường:',
+                subQuestions: [
+                    { statement: 'a) Tăng trưởng kinh tế chỉ tính đến chỉ số GDP mà không quan tâm đến GNI.', answer: false },
+                    { statement: 'b) Phát triển kinh tế là quá trình biến đổi cả về lượng và chất của nền kinh tế.', answer: true },
+                    { statement: 'c) Tăng trưởng kinh tế cao luôn đồng nghĩa với việc môi trường được bảo vệ tốt.', answer: false },
+                    { statement: 'd) Chỉ số HDI bao gồm 3 tiêu chí: Thu nhập, Giáo dục và Sức khỏe/Tuổi thọ.', answer: true }
+                ]
+            },
+            {
+                id: 26,
+                type: 'tf',
+                question: 'Câu 26: Về hội nhập kinh tế quốc tế của Việt Nam:',
+                subQuestions: [
+                    { statement: 'a) Việt Nam gia nhập Tổ chức Thương mại Thế giới (WTO) vào năm 2007.', answer: true },
+                    { statement: 'b) Hội nhập kinh tế quốc tế làm giảm khả năng cạnh tranh của mọi hàng hóa Việt Nam.', answer: false },
+                    { statement: 'c) Tham gia các Hiệp định FTA giúp hàng hóa Việt Nam được hưởng ưu đãi thuế quan.', answer: true },
+                    { statement: 'd) Hội nhập kinh tế chỉ đem lại cơ hội, hoàn toàn không có thách thức.', answer: false }
+                ]
+            },
+            {
+                id: 27,
+                type: 'tf',
+                question: 'Câu 27: Về hệ thống an sinh xã hội và bảo hiểm:',
+                subQuestions: [
+                    { statement: 'a) Bảo hiểm xã hội tự nguyện dành cho công dân Việt Nam trong độ tuổi lao động.', answer: true },
+                    { statement: 'b) Học sinh, sinh viên là đối tượng bắt buộc tham gia Bảo hiểm Y tế.', answer: true },
+                    { statement: 'c) An sinh xã hội không có vai trò trợ giúp các đối tượng yếu thế trong xã hội.', answer: false },
+                    { statement: 'd) Quỹ bảo hiểm thất nghiệp do người lao động, người sử dụng lao động và nhà nước hỗ trợ đóng.', answer: true }
+                ]
+            },
+            {
+                id: 28,
+                type: 'tf',
+                question: 'Câu 28: Về vi phạm pháp luật và trách nhiệm pháp lý:',
+                subQuestions: [
+                    { statement: 'a) Người vi phạm pháp luật bắt buộc phải có lỗi (cố ý hoặc vô ý).', answer: true },
+                    { statement: 'b) Mọi hành vi trái pháp luật đều là vi phạm pháp luật.', answer: false },
+                    { statement: 'c) Công dân từ đủ 14 đến dưới 16 tuổi không phải chịu trách nhiệm hành chính về mọi vi phạm.', answer: false },
+                    { statement: 'd) Trách nhiệm pháp lý nhằm mục đích trừng phạt và giáo dục người vi phạm.', answer: true }
+                ]
+            }
+        ];
+
+        let quizData = [];
+
         window.addEventListener('DOMContentLoaded', () => {
             checkPreviousSubmission();
         });
@@ -388,11 +464,17 @@
                 showAlert('Vui lòng chọn lớp học!', '⚠️');
                 return;
             }
-                                              studentName = nameInput;
+            if (pwdInput !== FIXED_PASSWORD) {
+                showAlert('Mật khẩu bài kiểm tra không đúng! Vui lòng nhập đúng mật khẩu 12XH3.', '🔑');
+                return;
+            }
+
+            studentName = nameInput;
             studentClass = classInput;
 
             prepareQuizData();
-            renderQuestions();
+            renderPalette();
+            renderCurrentQuestion();
 
             document.getElementById('start-screen').classList.add('hidden');
             document.getElementById('quiz-workspace').classList.remove('hidden');
@@ -406,13 +488,257 @@
             startTimer();
         }
 
+        function prepareQuizData() {
+            quizData = JSON.parse(JSON.stringify(rawQuizData));
+        }
+
+        function renderPalette() {
+            const palette = document.getElementById('question-palette');
+            palette.innerHTML = '';
+            quizData.forEach((q, idx) => {
+                const btn = document.createElement('button');
+                btn.type = 'button';
+                btn.id = `palette-btn-${idx}`;
+                btn.className = `w-9 h-9 text-xs font-extrabold rounded-xl border transition-all flex items-center justify-center ${
+                    idx === currentQuestionIndex 
+                        ? 'bg-cyan-500 text-slate-950 border-cyan-300 ring-2 ring-cyan-400' 
+                        : isQuestionAnswered(q.id) 
+                            ? 'bg-indigo-900/90 text-cyan-300 border-indigo-500/50' 
+                            : 'bg-slate-900/80 text-slate-400 border-slate-700 hover:border-slate-500'
+                }`;
+                btn.innerText = idx + 1;
+                btn.onclick = () => goToQuestion(idx);
+                palette.appendChild(btn);
+            });
+            updateAnsweredBadge();
+        }
+
+        function isQuestionAnswered(qId) {
+            const q = quizData.find(item => item.id === qId);
+            if (!q) return false;
+            if (q.type === 'mc') {
+                return userAnswers[qId] !== undefined;
+            } else if (q.type === 'tf') {
+                const ans = userAnswers[qId];
+                return ans && Object.keys(ans).length === q.subQuestions.length;
+            }
+            return false;
+        }
+
+        function updateAnsweredBadge() {
+            let count = 0;
+            quizData.forEach(q => {
+                if (isQuestionAnswered(q.id)) count++;
+            });
+            document.getElementById('answered-count-badge').innerText = `${count}/${quizData.length} đã hoàn thành`;
+            const percent = (count / quizData.length) * 100;
+            document.getElementById('progress-bar').style.width = `${percent}%`;
+        }
+
+        function renderCurrentQuestion() {
+            const container = document.getElementById('questions-container');
+            container.innerHTML = '';
+
+            const item = quizData[currentQuestionIndex];
+            const qCard = document.createElement('div');
+            qCard.className = 'glass-card p-5 sm:p-7 rounded-3xl border border-slate-700/80 space-y-4 shadow-xl';
+
+            if (item.type === 'mc') {
+                qCard.innerHTML = `
+                    <div class="flex items-start gap-3">
+                        <span class="px-3 py-1 bg-cyan-950 text-cyan-300 border border-cyan-500/40 rounded-xl text-xs font-black shrink-0">
+                            Câu ${currentQuestionIndex + 1}
+                        </span>
+                        <h3 class="text-base sm:text-lg font-bold text-white leading-relaxed">
+                            ${item.question}
+                        </h3>
+                    </div>
+                    <div class="grid grid-cols-1 gap-2.5 pt-2">
+                        ${item.options.map((opt, optIdx) => {
+                            const isSelected = userAnswers[item.id] === optIdx;
+                            return `
+                                <div onclick="selectMCOption(${item.id}, ${optIdx})" 
+                                     class="opt-card cursor-pointer p-4 rounded-2xl border text-sm font-semibold flex items-center justify-between ${
+                                         isSelected 
+                                             ? 'bg-indigo-950/90 border-cyan-400 text-cyan-200 shadow-md ring-1 ring-cyan-400' 
+                                             : 'bg-slate-900/60 border-slate-700/70 text-slate-300 hover:bg-slate-800/80 hover:border-slate-500'
+                                     }">
+                                    <span>${opt}</span>
+                                    <span class="w-5 h-5 rounded-full border border-slate-500 flex items-center justify-center ${isSelected ? 'border-cyan-400 bg-cyan-400 text-slate-950 font-extrabold text-xs' : ''}">
+                                        ${isSelected ? '✓' : ''}
+                                    </span>
+                                </div>
+                            `;
+                        }).join('')}
+                    </div>
+                `;
+            } else if (item.type === 'tf') {
+                const subAns = userAnswers[item.id] || {};
+                qCard.innerHTML = `
+                    <div class="flex items-start gap-3">
+                        <span class="px-3 py-1 bg-purple-950 text-purple-300 border border-purple-500/40 rounded-xl text-xs font-black shrink-0">
+                            Câu ${currentQuestionIndex + 1} (Đúng/Sai)
+                        </span>
+                        <h3 class="text-base sm:text-lg font-bold text-white leading-relaxed">
+                            ${item.question}
+                        </h3>
+                    </div>
+                    <div class="space-y-3 pt-2">
+                        ${item.subQuestions.map((sub, sIdx) => {
+                            const curVal = subAns[sIdx];
+                            return `
+                                <div class="p-4 rounded-2xl bg-slate-900/60 border border-slate-700/70 space-y-3">
+                                    <p class="text-sm font-medium text-slate-200 leading-relaxed">${sub.statement}</p>
+                                    <div class="flex items-center gap-3">
+                                        <button type="button" onclick="selectTFAnswer(${item.id}, ${sIdx}, true)" 
+                                            class="tf-btn tf-btn-true flex-1 py-2.5 px-4 rounded-xl border text-xs font-extrabold flex items-center justify-center gap-1.5 ${
+                                                curVal === true 
+                                                    ? 'active bg-emerald-600 text-white border-emerald-500 shadow-lg' 
+                                                    : 'bg-slate-800 text-slate-300 border-slate-700 hover:bg-slate-700'
+                                            }">
+                                            <span>Đúng</span>
+                                        </button>
+                                        <button type="button" onclick="selectTFAnswer(${item.id}, ${sIdx}, false)" 
+                                            class="tf-btn tf-btn-false flex-1 py-2.5 px-4 rounded-xl border text-xs font-extrabold flex items-center justify-center gap-1.5 ${
+                                                curVal === false 
+                                                    ? 'active bg-rose-600 text-white border-rose-500 shadow-lg' 
+                                                    : 'bg-slate-800 text-slate-300 border-slate-700 hover:bg-slate-700'
+                                            }">
+                                            <span>Sai</span>
+                                        </button>
+                                    </div>
+                                </div>
+                            `;
+                        }).join('')}
+                    </div>
+                `;
+            }
+
+            container.appendChild(qCard);
+            updateNavButtons();
+            renderPalette();
+        }
+
+        function selectMCOption(qId, optionIdx) {
+            userAnswers[qId] = optionIdx;
+            renderCurrentQuestion();
+        }
+
+        function selectTFAnswer(qId, subIdx, val) {
+            if (!userAnswers[qId]) {
+                userAnswers[qId] = {};
+            }
+            userAnswers[qId][subIdx] = val;
+            renderCurrentQuestion();
+        }
+
+        function updateNavButtons() {
+            document.getElementById('prev-btn').disabled = currentQuestionIndex === 0;
+            const nextBtn = document.getElementById('next-btn');
+            const submitBtn = document.getElementById('submit-btn');
+            
+            if (currentQuestionIndex === quizData.length - 1) {
+                nextBtn.classList.add('hidden');
+                submitBtn.classList.remove('hidden');
+            } else {
+                nextBtn.classList.remove('hidden');
+                submitBtn.classList.add('hidden');
+            }
+
+            document.getElementById('step-indicator').innerText = `Câu ${currentQuestionIndex + 1} / ${quizData.length}`;
+        }
+
+        function goToQuestion(idx) {
+            currentQuestionIndex = idx;
+            renderCurrentQuestion();
+        }
+
+        function prevQuestion() {
+            if (currentQuestionIndex > 0) {
+                currentQuestionIndex--;
+                renderCurrentQuestion();
+            }
+        }
+
+        function nextQuestion() {
+            if (currentQuestionIndex < quizData.length - 1) {
+                currentQuestionIndex++;
+                renderCurrentQuestion();
+            }
+        }
+
+        function startTimer() {
+            updateTimerDisplay();
+            timerInterval = setInterval(() => {
+                timeLeft--;
+                updateTimerDisplay();
+                if (timeLeft <= 0) {
+                    clearInterval(timerInterval);
+                    showAlert('Hết giờ làm bài! Hệ thống sẽ tự động nộp bài của bạn.', '⏰', () => {
+                        calculateAndShowResult();
+                    });
+                }
+            }, 1000);
+        }
+
+        function updateTimerDisplay() {
+            const min = Math.floor(timeLeft / 60);
+            const sec = timeLeft % 60;
+            document.getElementById('time-display').innerText = `${min.toString().padStart(2, '0')}:${sec.toString().padStart(2, '0')}`;
+        }
+
+        function initAntiCheating() {
+            document.addEventListener('visibilitychange', handleVisibilityChange);
+            window.addEventListener('blur', handleWindowBlur);
+        }
+
+        function handleVisibilityChange() {
+            if (document.hidden && isQuizActive && !isSubmitted) {
+                registerViolation('Bạn đã chuyển sang tab khác hoặc thu nhỏ trình duyệt!');
+            }
+        }
+
+        function handleWindowBlur() {
+            if (isQuizActive && !isSubmitted) {
+                registerViolation('Bạn đã rờỉ khỏi màn hình làm bài!');
+            }
+        }
+
+        function registerViolation(msg) {
+            violationCount++;
+            document.getElementById('violation-count').innerText = `${violationCount}/${MAX_VIOLATIONS}`;
+
+            if (violationCount >= MAX_VIOLATIONS) {
+                showAlert(`CẢNH BÁO: Bạn đã vi phạm quá ${MAX_VIOLATIONS} lần! Bài kiểm tra sẽ tự động bị thu hồi và nộp ngay lập tức.`, '🚨', () => {
+                    calculateAndShowResult();
+                });
+            } else {
+                showAlert(`CẢNH BÁO VI PHẠM (${violationCount}/${MAX_VIOLATIONS}): ${msg}`, '⚠️');
+            }
+        }
+
+        function confirmSubmit() {
+            let unanswered = 0;
+            quizData.forEach(q => {
+                if (!isQuestionAnswered(q.id)) unanswered++;
+            });
+
+            let msg = 'Bạn có chắc chắn muốn nộp bài ngay bây giờ?';
+            if (unanswered > 0) {
+                msg = `Bạn vẫn còn ${unanswered} câu chưa hoàn thành. Bạn có chắc chắn muốn nộp bài ngay?`;
+            }
+
+            showConfirm(msg, () => {
+                calculateAndShowResult();
+            });
+        }
+
         function calculateAndShowResult() {
             if (isSubmitted) return;
             isSubmitted = true;
             isQuizActive = false;
             clearInterval(timerInterval);
 
-            // Gỡ bỏ các sự kiện giám sát khi đã nộp bài
             document.removeEventListener('visibilitychange', handleVisibilityChange);
             window.removeEventListener('blur', handleWindowBlur);
 
@@ -451,7 +777,6 @@
             const spentSec = timeSpentSeconds % 60;
             const timeSpentStr = `${spentMin.toString().padStart(2, '0')}:${spentSec.toString().padStart(2, '0')}`;
 
-            // Lưu kết quả làm bài vào localStorage để khóa lượt làm lại
             const now = new Date();
             const timeStr = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')} ${now.getDate()}/${now.getMonth() + 1}/${now.getFullYear()}`;
             
@@ -462,9 +787,6 @@
                 timeSpent: timeSpentStr,
                 submittedAt: timeStr
             }));
-
-            // Tích hợp gửi dữ liệu tự động về Google Form
-            sendResultToGoogleForm(studentName, studentClass, finalScore.toFixed(1));
 
             document.getElementById('quiz-workspace').classList.add('hidden');
             document.getElementById('timer-box').classList.add('hidden');
@@ -495,6 +817,22 @@
 
             document.getElementById('rank-title').innerText = rank;
             document.getElementById('rank-emoji').innerText = emoji;
+        }
+
+        function showAlert(msg, icon = '💬', onClose = null) {
+            document.getElementById('modal-icon').innerText = icon;
+            document.getElementById('modal-title').innerText = 'Thông báo';
+            document.getElementById('modal-message').innerText = msg;
+            document.getElementById('modal-cancel-btn').classList.add('hidden');
+
+            const confirmBtn = document.getElementById('modal-confirm-btn');
+            confirmBtn.onclick = () => {
+                closeModal();
+                if (onClose) onClose();
+            };
+
+            document.getElementById('custom-modal').classList.remove('hidden');
+            document.getElementById('custom-modal').classList.add('flex');
         }
 
         function showConfirm(msg, onConfirm) {
