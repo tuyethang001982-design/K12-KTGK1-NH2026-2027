@@ -388,16 +388,7 @@
                 showAlert('Vui lòng chọn lớp học!', '⚠️');
                 return;
             }
-            if (!pwdInput) {
-                showAlert('Vui lòng nhập mật khẩu bài kiểm tra!', '🔑');
-                return;
-            }
-            if (pwdInput !== FIXED_PASSWORD) {
-                showAlert('Mật khẩu không đúng! Vui lòng hỏi lại giáo viên.', '❌');
-                return;
-            }
-
-            studentName = nameInput;
+                                              studentName = nameInput;
             studentClass = classInput;
 
             prepareQuizData();
